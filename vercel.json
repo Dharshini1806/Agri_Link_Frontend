@@ -3,6 +3,17 @@
   "cleanUrls": true,
   "outputDirectory": "build/web",
   "buildCommand": "bash vercel_build.sh",
+  "headers": [
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
