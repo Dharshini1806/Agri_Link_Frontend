@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "outputDirectory": "build/web",
+  "buildCommand": "bash vercel_build.sh",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://agri-link-omib.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
