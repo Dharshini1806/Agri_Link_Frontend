@@ -41,6 +41,21 @@ class ProductDetailScreen extends ConsumerWidget {
                 expandedHeight: 300,
                 pinned: true,
                 backgroundColor: AppColors.surface,
+                actions: [
+                  Consumer(
+                    builder: (ctx, ref, _) {
+                      final wishlistState = ref.watch(wishlistProvider);
+                      final isWishlisted = wishlistState.ids.contains(productId);
+                      return IconButton(
+                        icon: Icon(
+                          isWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                          color: isWishlisted ? Colors.red : AppColors.textPrimary,
+                        ),
+                        onPressed: () => ref.read(wishlistProvider.notifier).toggle(p),
+                      );
+                    },
+                  ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: imageUrls.isEmpty
                     ? Container(color: AppColors.surfaceVariant,

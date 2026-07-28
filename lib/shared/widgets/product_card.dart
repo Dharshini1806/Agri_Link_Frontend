@@ -1,12 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../features/products/presentation/providers/products_provider.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   final dynamic product;
   final bool showDistance;
   final bool showSellerInfo;
@@ -14,7 +16,7 @@ class ProductCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onCompareToggle;
   final VoidCallback? onWishlistToggle;
-  final bool isWishlisted;
+  final bool? isWishlisted;
 
   const ProductCard({
     super.key,
@@ -25,7 +27,7 @@ class ProductCard extends StatelessWidget {
     this.isSelected = false,
     this.onCompareToggle,
     this.onWishlistToggle,
-    this.isWishlisted = false,
+    this.isWishlisted,
   });
 
   Color get _gradeColor {
@@ -38,7 +40,7 @@ class ProductCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final imageUrls = (product['image_urls'] as List?)?.cast<String>() ?? [];
     final imageUrl  = imageUrls.isNotEmpty ? imageUrls.first : null;
     final price     = AppFormatters.parseDouble(product['price']);
@@ -47,8 +49,13 @@ class ProductCard extends StatelessWidget {
     final distKm    = product['distance_km'] != null ? AppFormatters.parseDouble(product['distance_km']) : null;
     final grade     = product['quality_grade'] as String?;
 
+    final String pId = product['id'] as String? ?? '';
+    final wishlistState = ref.watch(wishlistProvider);
+    final activeWishlisted = isWishlisted ?? wishlistState.ids.contains(pId);
+    final activeWishlistToggle = onWishlistToggle ?? () => ref.read(wishlistProvider.notifier).toggle(product);
+
     return GestureDetector(
-      onTap: () => context.push('/product/${product['id']}'),
+      onTap: () => context.push('/product/$pId'),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -92,12 +99,11 @@ class ProductCard extends StatelessWidget {
               // Wishlist & Compare
               Positioned(top: 6, right: 6,
                 child: Column(children: [
-                  if (onWishlistToggle != null)
-                    _ActionBtn(
-                      icon: isWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                      color: isWishlisted ? Colors.red : Colors.white,
-                      onTap: onWishlistToggle!,
-                    ),
+                  _ActionBtn(
+                    icon: activeWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                    color: activeWishlisted ? Colors.red : Colors.white,
+                    onTap: activeWishlistToggle,
+                  ),
                   if (showCompareToggle && onCompareToggle != null) ...[
                     const SizedBox(height: 4),
                     _ActionBtn(
@@ -114,7 +120,7 @@ class ProductCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(10),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(product['name'] as String,
+              Text(product['name'] as String? ?? 'Produce',
                 maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary)),
               const SizedBox(height: 2),
